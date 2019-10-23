@@ -1,11 +1,13 @@
 package com.company;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Alg {
     private static Scanner in = new Scanner(System.in);
     private static Sequence tryFoundSequence;
+    private static Sequence userSequence;
     private static int lengthUserSequence = 0;
     private static int rightNumberInSequenceOld = 0;
     private static int rightNumberInSequenceCurrent = 0;
@@ -14,11 +16,12 @@ public class Alg {
     private static int maxNumberInSequence=0;
     private static int currentPositionInSequence = 0;
     private static int memoryNumber = 0;
-    private static ArrayList<Integer> memory = new ArrayList<>();
     private static boolean[] rightPosition ;
 
-    public Alg(int length){
+    public Alg(int length, String sequence){
         lengthUserSequence = length;
+        userSequence = new Sequence(length);
+        userSequence.setSequence(sequence);
         tryFoundSequence = new Sequence(lengthUserSequence);
         rightPosition = new boolean[lengthUserSequence];
         for (int i = 0; i < lengthUserSequence ; i++) {
@@ -42,84 +45,60 @@ public class Alg {
                     rightNumberInSequenceOnPositionOld = rightNumberInSequenceOnPositionCurrent;
                 }
                 currentPositionInSequence++;
-                int k = memory.size();
-                if(k>0){
-                    for (int i = k-1; i >=0; i--) {
-                        memory.remove(i);
-                    }
-                }
             }
             else{
-                if(rightNumberInSequenceCurrent == rightNumberInSequenceOld){
+                if(rightNumberInSequenceOld == rightNumberInSequenceCurrent){
                     if(rightNumberInSequenceOnPositionCurrent > rightNumberInSequenceOnPositionOld){
-                        rightPosition[currentPositionInSequence] = true;
                         rightNumberInSequenceOnPositionOld = rightNumberInSequenceOnPositionCurrent;
+                        rightPosition[currentPositionInSequence] = true;
                         currentPositionInSequence++;
-                        for (int i = 0; i < memory.size() ; i++) {
-                            tryFoundSequence.setNumberSequence(memory.get(i),currentPositionInSequence);
-                            currentPositionInSequence++;
-                        }
-                        memory.remove(memory);
+                        maxNumberInSequence = memoryNumber;
                     }
                     else{
                         if(rightNumberInSequenceOnPositionCurrent < rightNumberInSequenceOnPositionOld){
-                            tryFoundSequence.setNumberSequence(memoryNumber, currentPositionInSequence);
+                            maxNumberInSequence = tryFoundSequence.getNumberSequence(currentPositionInSequence);
+                            tryFoundSequence.setNumberSequence(memoryNumber,currentPositionInSequence);
                             currentPositionInSequence++;
-                            for (int i = 0; i < memory.size() ; i++) {
-                                tryFoundSequence.setNumberSequence(memory.get(i),currentPositionInSequence);
-                                currentPositionInSequence++;
-                            }
-                            memory.remove(memory);
-                        }
-                        else{
-                            memory.add(memoryNumber);
                         }
                     }
                 }
                 else{
-                    memory.add(memoryNumber);
-                    for (int i = 0; i < memory.size() ; i++) {
-                        tryFoundSequence.setNumberSequence(memory.get(i),currentPositionInSequence);
-                        currentPositionInSequence++;
-                    }
-                    memory.remove(memory);
+                    tryFoundSequence.setNumberSequence(memoryNumber,currentPositionInSequence);
+                    currentPositionInSequence++;
                 }
             }
             otherTry();
         }
+
     }
 
     private void sortSequence() {
         int i = 0;
-        int j = i + 1;
+        int j = 0;
         while (rightNumberInSequenceCurrent != rightNumberInSequenceOnPositionCurrent) {
-            if (rightPosition[i]) {
+            if(rightPosition[i]){
                 i++;
-            } else {
-                if (j == lengthUserSequence) {
+                j=i+1;
+            }
+            else{
+                if(j==lengthUserSequence){
                     i++;
-                    if (rightPosition[i]) {
-                        i++;
-                    }
-                    j = i + 1;
+                    j=i+1;
                 }
-                if (rightPosition[j]) {
+                if(rightPosition[j]){
                     j++;
-                } else {
-                    if (i == j) {
-                        j++;
-                    } else {
-                        toSwap(i, j);
-                        iteration();
-                        if (rightNumberInSequenceOnPositionCurrent < rightNumberInSequenceOnPositionOld) {
-                            toSwap(i, j);
-                            i++;
-                            j = i + 1;
-                        } else {
-                            rightNumberInSequenceOnPositionOld = rightNumberInSequenceOnPositionCurrent;
-                            j++;
-                        }
+                }
 
+                if(i<lengthUserSequence){
+                    toSwap(i,j);
+                    iteration();
+                    if(rightNumberInSequenceOnPositionCurrent > rightNumberInSequenceOnPositionOld){
+                        rightNumberInSequenceOnPositionOld = rightNumberInSequenceOnPositionCurrent;
+                        j++;
+                    }
+                    else{
+                        toSwap(i,j);
+                        j++;
                     }
                 }
             }
@@ -134,9 +113,21 @@ public class Alg {
     }
 
     private void changeNumberInSequence(){
-        memoryNumber = tryFoundSequence.getNumberSequence(currentPositionInSequence);
-        tryFoundSequence.setNumberSequence(maxNumberInSequence , currentPositionInSequence);
+       memoryNumber = tryFoundSequence.getNumberSequence(currentPositionInSequence);
+        maxNumberInSequence = maxNumberInSequence % 10;
+        for (int i = 0; i < lengthUserSequence ; i++) {
+            for (int j = 0; j < lengthUserSequence ; j++) {
+                if(tryFoundSequence.getNumberSequence(j) == maxNumberInSequence){
+                    maxNumberInSequence++;
+                    maxNumberInSequence = maxNumberInSequence % 10;
+                    continue;
+                }
+            }
+        }
+        tryFoundSequence.setNumberSequence(maxNumberInSequence, currentPositionInSequence);
         maxNumberInSequence++;
+
+
     }
 
     private void firstTry(){
@@ -156,7 +147,7 @@ public class Alg {
 
     private void changeTrySequence(){
         for (int i = maxNumberInSequence; i < lengthUserSequence + maxNumberInSequence ; i++) {
-            tryFoundSequence.setNumberSequence(i, i-maxNumberInSequence);
+            tryFoundSequence.setNumberSequence(i % 10, i-maxNumberInSequence);
         }
         maxNumberInSequence += lengthUserSequence;
         iteration();
@@ -171,8 +162,20 @@ public class Alg {
 
     private void iteration(){
         System.out.println(tryFoundSequence.getSequence());
-        rightNumberInSequenceCurrent = in.nextInt();
-        rightNumberInSequenceOnPositionCurrent = in.nextInt();
+        rightNumberInSequenceCurrent = 0;
+        rightNumberInSequenceOnPositionCurrent = 0;
+        for (int i = 0; i < lengthUserSequence ; i++) {
+            for (int j = 0; j < lengthUserSequence; j++) {
+                if(tryFoundSequence.getNumberSequence(j) == userSequence.getNumberSequence(i)){
+                    rightNumberInSequenceCurrent++;
+                    if(i==j){
+                        rightNumberInSequenceOnPositionCurrent++;
+                    }
+                }
+            }
+        }
+        System.out.println("Правильных цифр: " + rightNumberInSequenceCurrent);
+        System.out.println("Правильных цифр на позициях: " + rightNumberInSequenceOnPositionCurrent);
     }
 
     public String getAnswer(){

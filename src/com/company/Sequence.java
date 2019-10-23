@@ -14,6 +14,10 @@ public class Sequence {
     }
 
     public void setSequence(String sequence){
+        String[] splitSeq = sequence.split("");
+        for (int i = 0; i < length ; i++) {
+            numberSequence[i] = Integer.parseInt(splitSeq[i]);
+        }
         this.sequence=sequence;
     }
 
